@@ -674,14 +674,19 @@ async function callGeminiJson(systemPrompt, userPrompt, options = {}) {
     });
   }
 
+  const generationConfig = {
+    temperature: options.temperature ?? 0.7,
+    topK: options.topK ?? 40,
+    topP: options.topP ?? 0.95
+  };
+
+  if (!isGemmaModel) {
+    generationConfig.responseMimeType = "application/json";
+  }
+
   const requestBody = {
     contents,
-    generationConfig: {
-      temperature: options.temperature ?? 0.7,
-      topK: options.topK ?? 40,
-      topP: options.topP ?? 0.95,
-      responseMimeType: "application/json"
-    }
+    generationConfig
   };
 
   if (!isGemmaModel) {
