@@ -21,6 +21,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY || "";
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-pro";
+const DEBUG_GEMINI = String(process.env.DEBUG_GEMINI || "").toLowerCase() === "true";
 
 app.use(cors());
 app.use(express.json());
@@ -179,6 +180,15 @@ async function callGeminiJson(systemPrompt, userPrompt, options = {}) {
   const model = options.model || GEMINI_MODEL;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 
+  logGeminiDebug("Sende Anfrage an Gemini", {
+    model,
+    temperature: options.temperature ?? 0.7,
+    topK: options.topK ?? 40,
+    topP: options.topP ?? 0.95,
+    systemPromptPreview: systemPrompt.slice(0, 200),
+    userPromptPreview: userPrompt.slice(0, 200)
+  });
+
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -204,6 +214,12 @@ async function callGeminiJson(systemPrompt, userPrompt, options = {}) {
 
   const payload = await response.json();
 
+  logGeminiDebug("Antwort von Gemini erhalten", {
+    status: response.status,
+    ok: response.ok,
+    payloadPreview: JSON.stringify(payload).slice(0, 500)
+  });
+
   if (!response.ok) {
     const message = payload?.error?.message || response.statusText || "Unbekannter Fehler";
     throw new Error(message);
@@ -215,6 +231,8 @@ async function callGeminiJson(systemPrompt, userPrompt, options = {}) {
   if (!text) {
     throw new Error("Gemini API lieferte keinen Text");
   }
+
+  logGeminiDebug("Gemini Textantwort", text.slice(0, 500));
 
   return parseGeminiJson(text);
 }
@@ -266,6 +284,19 @@ function isValidTopicData(data) {
 
 function logGeminiError(scope, error) {
   console.error(`❌ Gemini Fehler bei ${scope}:`, error?.message || error);
+}
+
+function logGeminiDebug(message, details) {
+  if (!DEBUG_GEMINI) {
+    return;
+  }
+
+  if (details !== undefined) {
+    console.log(`🐞 Gemini Debug: ${message}`, details);
+    return;
+  }
+
+  console.log(`🐞 Gemini Debug: ${message}`);
 }
 
 function getTopicLabel(descriptor) {
