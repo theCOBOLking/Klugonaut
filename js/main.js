@@ -4,6 +4,7 @@
 
 import { CONFIG, apiFetch } from "./config.js";
 import { updateRocketProgress, celebrateLevelUp } from "./rocket.js";
+import { CHAPTERS } from "../data/chapters.js";
 
 let currentSet = "A";
 let currentGame = null;
@@ -24,14 +25,29 @@ window.addEventListener("DOMContentLoaded", () => {
 
 async function loadMenu(set) {
   rightPanel.innerHTML = `<h2>📘 Themen (${set} Teil)</h2><p>Lade Daten...</p>`;
+  window.currentTopic = null;
 
-  const data = await apiFetch(`/chapters?part=${set}`);
-  if (!data) {
-    rightPanel.innerHTML = `<p>❌ Themen konnten nicht geladen werden.</p>`;
-    return;
+  let data = await apiFetch(`/chapters?part=${set}`);
+  let usedFallback = false;
+
+  if (!data || !Object.keys(data).length) {
+    data = CHAPTERS[set] || {};
+    usedFallback = true;
+    if (CONFIG.debug) {
+      console.warn("Kapitel werden aus dem lokalen Dummy geladen, da die API nicht erreichbar ist.");
+    }
   }
 
   rightPanel.innerHTML = `<h2>📘 Themen (${set} Teil)</h2>`;
+
+  if (usedFallback) {
+    rightPanel.innerHTML += `<p class="fallback-hint">⚠️ Offline-Modus: Lokale Themen aktiv.</p>`;
+  }
+
+  if (!Object.keys(data).length) {
+    rightPanel.innerHTML += `<p>❌ Keine Themen verfügbar.</p>`;
+    return;
+  }
 
   for (const [chapter, subtopics] of Object.entries(data)) {
     const div = document.createElement("div");
@@ -54,6 +70,8 @@ async function loadMenu(set) {
     div.appendChild(sub);
     rightPanel.appendChild(div);
   }
+
+  showSelectTopicMessage();
 }
 
 function toggleAccordion(div) {
@@ -118,6 +136,14 @@ function setupPartSwitch() {
     currentSet = "C";
     loadMenu("C");
   };
+}
+
+function showSelectTopicMessage() {
+  if (!gameArea) return;
+  gameArea.innerHTML = `
+    <h2>👨‍🚀 Wähle ein Thema!</h2>
+    <p>Suche dir rechts ein Thema aus, um mit deinem Spiel fortzufahren.</p>
+  `;
 }
 
 export function addPoint() {
