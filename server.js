@@ -264,46 +264,312 @@ async function generateWorksheetWithGemini(descriptor, ragContext) {
 async function generateTopicDataWithGemini(descriptor, ragContext) {
   const topicLabel = getTopicLabel(descriptor);
   const chapterLabel = descriptor.chapter || "Sachunterricht";
-  const pageHint = descriptor.pages.length ? `Seiten ${descriptor.pages.join(", ")}` : "";
   const sanitizedContext = ragContext?.trim();
 
-  const systemPrompt = [
-    "Du unterstützt Grundschulkinder beim Entdecken neuer Themen.",
-    "Antworte ausschließlich mit JSON, ohne erläuternden Text.",
-    "Schema:",
-    '{',
-    '  "chapter": string,',
-    '  "topic": string,',
-    '  "keywords": string[6],',
-    '  "quiz": [{"q": string, "a": string[4], "correct": number, "hint": string}],',
-    '  "riddles": [{"hints": string[3], "answer": string}],',
-    '  "scenarios": [{"question": string, "answers": string[4], "correct": number, "explanation": string}],',
-    '  "connections": [{"left": string, "right": string}],',
-    '  "chains": [{"title": string, "steps": string[4]}]',
-    '}',
-    "Beachte: Antworten sollen kindgerecht, präzise und themenbezogen sein.",
-    "Nutze Deutsch und vermeide Wiederholungen.",
-    "Alle Arrays müssen vollständig gefüllt sein."
-  ].join("\n");
+  const generationTasks = {
+    keywords: () => generateKeywordsWithGemini(descriptor, sanitizedContext),
+    quiz: () => generateQuizWithGemini(descriptor, sanitizedContext),
+    riddles: () => generateRiddlesWithGemini(descriptor, sanitizedContext),
+    scenarios: () => generateScenariosWithGemini(descriptor, sanitizedContext),
+    connections: () => generateConnectionsWithGemini(descriptor, sanitizedContext),
+    chains: () => generateChainsWithGemini(descriptor, sanitizedContext)
+  };
 
-  const promptParts = [];
+  const result = {
+    chapter: chapterLabel,
+    topic: topicLabel
+  };
 
-  if (sanitizedContext) {
-    const hint = pageHint ? ` (${pageHint})` : "";
-    promptParts.push(
-      `Analysiere die folgenden Schulbuchauszüge${hint} und nutze sie als alleinige Wissensquelle.\n"""\n${sanitizedContext}\n"""`
-    );
-  } else {
-    promptParts.push("Es liegt kein zusätzliches Material vor. Verwende grundlegendes Wissen für Grundschulkinder.");
+  const keys = Object.keys(generationTasks);
+  const settled = await Promise.allSettled(keys.map(key => generationTasks[key]()));
+
+  settled.forEach((entry, index) => {
+    const key = keys[index];
+    if (entry.status === "fulfilled") {
+      result[key] = entry.value;
+    } else {
+      logGeminiError(`/api/topicData → ${key}`, entry.reason);
+    }
+  });
+
+  if (isValidTopicData(result)) {
+    return result;
   }
 
-  promptParts.push(
-    `Erstelle Lernmaterialien zum Thema "${topicLabel}" für das Kapitel "${chapterLabel}".`
-  );
+  throw new Error("Ungültige Antwort der Gemini API für Spieleinhalte");
+}
 
-  const userPrompt = promptParts.join("\n\n");
+async function generateKeywordsWithGemini(descriptor, ragContext) {
+  const topicLabel = getTopicLabel(descriptor);
+  const chapterLabel = descriptor.chapter || "Sachunterricht";
+  const systemPrompt = [
+    "Du bist der Klugonaut und erstellst kindgerechte Schlüsselwörter.",
+    'Antworte ausschließlich mit JSON im Format {"keywords": string[6]}.',
+    "Jedes Schlüsselwort soll kurz, verständlich und thematisch passend sein.",
+    "Verwende keine Sätze oder doppelten Wörter."
+  ].join("\n");
 
-  return await callGeminiJson(systemPrompt, userPrompt, { temperature: 0.6 });
+  const userPrompt = [
+    buildRagInstruction(descriptor, ragContext),
+    `Kapitel: "${chapterLabel}" – Thema: "${topicLabel}".`,
+    "Wähle sechs unterschiedliche Begriffe, die das Thema beschreiben." 
+  ].join("\n\n");
+
+  const data = await callGeminiJson(systemPrompt, userPrompt, { temperature: 0.45 });
+  const keywords = Array.isArray(data?.keywords) ? data.keywords : Array.isArray(data) ? data : [];
+  const normalized = Array.from(new Set(keywords
+    .map(word => (typeof word === "string" ? word.trim() : ""))
+    .filter(word => word.length > 0)
+    .map(word => word.length > 32 ? word.slice(0, 32) : word)
+  ));
+
+  if (normalized.length < 6) {
+    throw new Error("Zu wenige Schlüsselwörter erhalten");
+  }
+
+  return normalized.slice(0, 6);
+}
+
+async function generateQuizWithGemini(descriptor, ragContext) {
+  const topicLabel = getTopicLabel(descriptor);
+  const chapterLabel = descriptor.chapter || "Sachunterricht";
+
+  const systemPrompt = [
+    "Du bist der Klugonaut und erstellst Quizfragen für Grundschulkinder.",
+    'Antwortformat: {"quiz": [{"q": string, "a": string[4], "correct": number, "hint": string}]}.',
+    "Jede Frage benötigt genau vier Antwortmöglichkeiten und einen gültigen Index zwischen 0 und 3.",
+    "Antworte ausschließlich mit JSON."
+  ].join("\n");
+
+  const userPrompt = [
+    buildRagInstruction(descriptor, ragContext),
+    `Kapitel: "${chapterLabel}" – Thema: "${topicLabel}".`,
+    "Erstelle fünf abwechslungsreiche Quizfragen zum Thema für Kinder der Volksschule."
+  ].join("\n\n");
+
+  const data = await callGeminiJson(systemPrompt, userPrompt, { temperature: 0.5 });
+  const quizEntries = Array.isArray(data?.quiz) ? data.quiz : Array.isArray(data) ? data : [];
+  const normalized = quizEntries
+    .map(entry => normalizeQuizQuestion(entry))
+    .filter(Boolean);
+
+  if (normalized.length < 5) {
+    throw new Error("Zu wenige Quizfragen erhalten");
+  }
+
+  return normalized.slice(0, 5);
+}
+
+function normalizeQuizQuestion(entry) {
+  if (!entry || typeof entry !== "object") {
+    return null;
+  }
+
+  const question = typeof entry.q === "string" && entry.q.trim()
+    ? entry.q.trim()
+    : typeof entry.question === "string" && entry.question.trim()
+      ? entry.question.trim()
+      : "";
+
+  const answersSource = Array.isArray(entry.a)
+    ? entry.a
+    : Array.isArray(entry.answers)
+      ? entry.answers
+      : [];
+
+  const answers = answersSource
+    .map(ans => (typeof ans === "string" ? ans.trim() : ""))
+    .filter(ans => ans.length > 0);
+
+  const correct = Number.isInteger(entry.correct)
+    ? entry.correct
+    : Number.parseInt(typeof entry.correct === "string" ? entry.correct : "", 10);
+
+  const hint = typeof entry.hint === "string" ? entry.hint.trim() : "";
+
+  if (!question || answers.length !== 4 || !Number.isInteger(correct) || correct < 0 || correct > 3 || !hint) {
+    return null;
+  }
+
+  return { q: question, a: answers, correct, hint };
+}
+
+async function generateRiddlesWithGemini(descriptor, ragContext) {
+  const topicLabel = getTopicLabel(descriptor);
+  const chapterLabel = descriptor.chapter || "Sachunterricht";
+
+  const systemPrompt = [
+    "Du bist der Klugonaut und erstellst Rätselrunden für das Spiel 'Wer bin ich?'.",
+    'Antwortformat: {"riddles": [{"hints": string[3], "answer": string}]}.',
+    "Die Hinweise sollen vom Allgemeinen zum Speziellen führen und klar verständlich sein.",
+    "Antworte ausschließlich mit JSON."
+  ].join("\n");
+
+  const userPrompt = [
+    buildRagInstruction(descriptor, ragContext),
+    `Kapitel: "${chapterLabel}" – Thema: "${topicLabel}".`,
+    "Erstelle vier unterschiedliche Rätselpersonen oder -objekte mit jeweils drei Hinweisen und einer Lösung." 
+  ].join("\n\n");
+
+  const data = await callGeminiJson(systemPrompt, userPrompt, { temperature: 0.55 });
+  const entries = Array.isArray(data?.riddles) ? data.riddles : Array.isArray(data) ? data : [];
+  const normalized = entries
+    .map(entry => {
+      const hints = Array.isArray(entry?.hints) ? entry.hints : Array.isArray(entry?.clues) ? entry.clues : [];
+      const normalizedHints = hints
+        .map(hint => (typeof hint === "string" ? hint.trim() : ""))
+        .filter(hint => hint.length > 0);
+      const answer = typeof entry?.answer === "string" ? entry.answer.trim() : "";
+      if (normalizedHints.length < 3 || !answer) {
+        return null;
+      }
+      return {
+        hints: normalizedHints.slice(0, 3),
+        answer
+      };
+    })
+    .filter(Boolean);
+
+  if (normalized.length < 3) {
+    throw new Error("Zu wenige Rätsel erhalten");
+  }
+
+  return normalized;
+}
+
+async function generateScenariosWithGemini(descriptor, ragContext) {
+  const topicLabel = getTopicLabel(descriptor);
+  const chapterLabel = descriptor.chapter || "Sachunterricht";
+
+  const systemPrompt = [
+    "Du bist der Klugonaut und entwickelst Alltagssituationen für das Spiel 'Was passiert wenn?'.",
+    'Antwortformat: {"scenarios": [{"question": string, "answers": string[4], "correct": number, "explanation": string}]}.',
+    "Jede Erklärung soll kurz begründen, warum die richtige Antwort stimmt.",
+    "Antworte ausschließlich mit JSON."
+  ].join("\n");
+
+  const userPrompt = [
+    buildRagInstruction(descriptor, ragContext),
+    `Kapitel: "${chapterLabel}" – Thema: "${topicLabel}".`,
+    "Erstelle vier Alltagssituationen mit jeweils vier Antwortmöglichkeiten, einem korrekten Index und einer kurzen Erklärung."
+  ].join("\n\n");
+
+  const data = await callGeminiJson(systemPrompt, userPrompt, { temperature: 0.55 });
+  const entries = Array.isArray(data?.scenarios) ? data.scenarios : Array.isArray(data) ? data : [];
+  const normalized = entries
+    .map(entry => {
+      const question = typeof entry?.question === "string" ? entry.question.trim() : typeof entry?.q === "string" ? entry.q.trim() : "";
+      const answers = Array.isArray(entry?.answers) ? entry.answers : Array.isArray(entry?.options) ? entry.options : [];
+      const normalizedAnswers = answers
+        .map(ans => (typeof ans === "string" ? ans.trim() : ""))
+        .filter(ans => ans.length > 0);
+      const correct = Number.isInteger(entry?.correct) ? entry.correct : Number.parseInt(entry?.correct ?? "", 10);
+      const explanation = typeof entry?.explanation === "string" ? entry.explanation.trim() : "";
+      if (!question || normalizedAnswers.length !== 4 || !Number.isInteger(correct) || correct < 0 || correct > 3 || !explanation) {
+        return null;
+      }
+      return {
+        question,
+        answers: normalizedAnswers,
+        correct,
+        explanation
+      };
+    })
+    .filter(Boolean);
+
+  if (normalized.length < 3) {
+    throw new Error("Zu wenige Alltagsszenarien erhalten");
+  }
+
+  return normalized;
+}
+
+async function generateConnectionsWithGemini(descriptor, ragContext) {
+  const topicLabel = getTopicLabel(descriptor);
+  const chapterLabel = descriptor.chapter || "Sachunterricht";
+
+  const systemPrompt = [
+    "Du bist der Klugonaut und bereitest Begriffspaare für das Spiel 'Begriffe verbinden' vor.",
+    'Antwortformat: {"connections": [{"left": string, "right": string}]}.',
+    "Jedes Paar soll aus einem Schlüsselwort und der passenden kindgerechten Erklärung bestehen.",
+    "Antworte ausschließlich mit JSON."
+  ].join("\n");
+
+  const userPrompt = [
+    buildRagInstruction(descriptor, ragContext),
+    `Kapitel: "${chapterLabel}" – Thema: "${topicLabel}".`,
+    "Erstelle sechs passende Begriffspaare mit kurzen, klaren Beschreibungen."
+  ].join("\n\n");
+
+  const data = await callGeminiJson(systemPrompt, userPrompt, { temperature: 0.5 });
+  const entries = Array.isArray(data?.connections) ? data.connections : Array.isArray(data) ? data : [];
+  const normalized = entries
+    .map(entry => {
+      const left = typeof entry?.left === "string" ? entry.left.trim() : "";
+      const right = typeof entry?.right === "string" ? entry.right.trim() : typeof entry?.description === "string" ? entry.description.trim() : "";
+      if (!left || !right) {
+        return null;
+      }
+      return { left, right };
+    })
+    .filter(Boolean);
+
+  if (normalized.length < 4) {
+    throw new Error("Zu wenige Begriffspaare erhalten");
+  }
+
+  return normalized.slice(0, 6);
+}
+
+async function generateChainsWithGemini(descriptor, ragContext) {
+  const topicLabel = getTopicLabel(descriptor);
+  const chapterLabel = descriptor.chapter || "Sachunterricht";
+
+  const systemPrompt = [
+    "Du bist der Klugonaut und entwirfst Reihenfolgen für das Spiel 'Kettenreaktion'.",
+    'Antwortformat: {"chains": [{"title": string, "steps": string[5]}]}.',
+    "Jede Kette beschreibt einen logischen Ablauf aus fünf kindgerechten Einzelschritten.",
+    "Antworte ausschließlich mit JSON."
+  ].join("\n");
+
+  const userPrompt = [
+    buildRagInstruction(descriptor, ragContext),
+    `Kapitel: "${chapterLabel}" – Thema: "${topicLabel}".`,
+    "Erstelle drei verschiedene Abläufe mit je fünf nummerierten Schritten."
+  ].join("\n\n");
+
+  const data = await callGeminiJson(systemPrompt, userPrompt, { temperature: 0.5 });
+  const entries = Array.isArray(data?.chains) ? data.chains : Array.isArray(data) ? data : [];
+  const normalized = entries
+    .map(entry => {
+      const title = typeof entry?.title === "string" ? entry.title.trim() : "";
+      const steps = Array.isArray(entry?.steps) ? entry.steps : [];
+      const normalizedSteps = steps
+        .map(step => (typeof step === "string" ? step.trim() : ""))
+        .filter(step => step.length > 0);
+      if (!title || normalizedSteps.length < 4) {
+        return null;
+      }
+      return {
+        title,
+        steps: normalizedSteps.slice(0, 5)
+      };
+    })
+    .filter(Boolean);
+
+  if (normalized.length < 2) {
+    throw new Error("Zu wenige Kettenreaktionen erhalten");
+  }
+
+  return normalized;
+}
+
+function buildRagInstruction(descriptor, ragContext) {
+  const pageHint = descriptor.pages.length ? ` (Seiten ${descriptor.pages.join(", ")})` : "";
+  if (ragContext) {
+    return `Nutze ausschließlich die folgenden Unterrichtsauszüge${pageHint} als Wissensquelle.\n"""\n${ragContext}\n"""`;
+  }
+  return "Es liegt kein zusätzliches Material vor. Verwende kindgerechtes Grundwissen und bleibe sachlich korrekt.";
 }
 
 async function generateMillionenshowQuestions(descriptor, ragContext) {
