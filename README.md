@@ -29,3 +29,9 @@ Dann im Browser öffnen: http://localhost:5000
 ## 🔌 API
 - GET /api/chapters?part=A|B|C
 - POST /api/generateSheet  (Body: { "topic": "..." })
+- POST /api/topicData      (Body: { "topic": "..." })
+
+## 🤖 Gemini-Konfiguration
+- Lege den API-Schlüssel als Umgebungsvariable `GEMINI_API_KEY` oder `GOOGLE_GEMINI_API_KEY` an.
+- Optional: `GEMINI_MODEL` (Standard: `gemini-1.5-flash`).
+- Wenn kein Schlüssel verfügbar ist oder die API einen Fehler liefert, nutzt der Server automatisch die lokalen Fallback-Daten.
