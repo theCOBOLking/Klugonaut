@@ -1,0 +1,11 @@
+# Seite 49
+# Thema: Strom ist nützlich, aber auch gefährlich
+
+[Chunk 1: Stromquellen – Vor- und Nachteile] (overview)
+Wasser-, Wind-, Sonnenenergie (umweltfreundlich, aber teils teuer/abhängig von Wetter); Kohle/Erdöl/Erdgas (verursachen Abgase); Atomkraft (kein CO₂ bei Betrieb, aber Risiken/Abfall).
+- Seitenverweis: S.49.
+------------------------------------------------------------
+[Chunk 2: Sicherheitsregeln Strom] (rule)
+Keine Drachen bei Hochspannungsleitungen; Elektrogeräte nicht mit ins Bad; beschädigte Kabel sofort melden.
+- Seitenverweis: S.49.
+------------------------------------------------------------

@@ -1,0 +1,16 @@
+# Seite 26
+# Thema: Wir basteln ein Thermometer
+
+[Chunk 1: Thermometer – Funktionsprinzip] (overview)
+Im Glasröhrchen befindet sich eine Flüssigkeit. Bei Wärme dehnt sie sich aus und steigt, bei Kälte zieht sie sich zusammen und sinkt.
+- Seitenverweis: S.26.
+------------------------------------------------------------
+[Chunk 2: Bauanleitung: Einfaches Thermometer] (procedure)
+Material: durchsichtige Flasche, Luftballon, Gummiband, Schüssel mit warmem Wasser, gefärbtes Wasser, Strohhalm, dicke Nadel.
+Schritte: 1) Flasche mit gefärbtem Wasser füllen. 2) Luftballon über Öffnung, mit Gummi abdichten; Strohhalm durch die Ballonhaut stechen und bis zum Flaschenboden schieben (alles dicht). 3) Wasserstand im Strohhalm markieren. 4) Flasche in warmes Wasser stellen → Wasser steigt; herausnehmen → fällt.
+- Seitenverweis: S.26.
+------------------------------------------------------------
+[Chunk 3: Beobachtung & Fragen] (qa)
+Wie schnell steigt/fällt das Wasser? Welche Rolle spielt die Dichtigkeit? Was passiert bei kaltem Wasser/Eisbad?
+- Seitenverweis: S.26.
+------------------------------------------------------------

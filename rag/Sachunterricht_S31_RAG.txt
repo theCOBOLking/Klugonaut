@@ -1,0 +1,15 @@
+# Seite 31
+# Thema: Mein Wohnort
+
+[Chunk 1: Fragebogen zu meinem Wohnort] (activity)
+Ort eintragen; Art des Ortes (Dorf, Kleinstadt, Großstadt); Gemeinde/Bürgermeister:in; Einwohnerzahl; Straßenname; Was gefällt mir (nicht)?
+- Seitenverweis: S.31.
+------------------------------------------------------------
+[Chunk 2: Erkundung des Wohnorts] (procedure)
+Besuch von Bauwerken/Sehenswürdigkeiten und öffentlichen Einrichtungen (Sportplatz, Schwimmbad). Fragen im Gemeindeamt/Rathaus sammeln (Wer arbeitet dort? Aufgaben des/der Bürgermeister:in?).
+- Seitenverweis: S.31.
+------------------------------------------------------------
+[Chunk 3: Fotoprojekt ‚Mein Wohnort‘] (activity)
+Wichtige/Interessante Orte fotografieren und daraus ein Buch ‚Mein Wohnort‘ erstellen.
+- Seitenverweis: S.31.
+------------------------------------------------------------

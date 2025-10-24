@@ -1,0 +1,23 @@
+# Seite 17
+# Thema: Der Kompass & Schildkröten-Kompass
+
+[Chunk 1: Der Kompass – Grundwissen] (overview)
+Ein Kompass nutzt Magnetismus; die magnetische Nadel zeigt mit der Spitze nach Norden. Verwendet beim Wandern und in der Schifffahrt.
+- Seitenverweis: S.17.
+------------------------------------------------------------
+[Chunk 2: Kompass-Bestandteile] (list)
+Magnetnadel, Windrose (Richtungsanzeige), Skala.
+- Seitenverweis: S.17.
+------------------------------------------------------------
+[Chunk 3: Aktivität 1: Mit dem Kompass ins Freie] (activity)
+In Gruppen Himmelsrichtungen an einigen Gegenständen im Schulhof bestimmen.
+- Seitenverweis: S.17.
+------------------------------------------------------------
+[Chunk 4: Aktivität 2: Schildkröten-Kompass basteln – Schritte] (procedure)
+Walnussschale=Körper; Moosgummi=Körper; Nuss-Schale ist Panzer. Büroklammer-Magnetisierung: mit Südpol des Magneten vom Ende zur Spitze streichen. Büroklammer mit Gummi unter die Schale befestigen, Spitze zeigt nach Norden, wenn die ‚Schildkröte‘ in einer Wasserschüssel schwimmt.
+- Seitenverweis: S.17.
+------------------------------------------------------------
+[Chunk 5: Materialliste Schildkröten-Kompass] (list)
+Walnussschale, Moosgummi, Büroklammer, Gummiring, Schüssel mit Wasser, starker Magnet.
+- Seitenverweis: S.17.
+------------------------------------------------------------

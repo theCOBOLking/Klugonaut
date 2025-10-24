@@ -1,0 +1,19 @@
+# Seite 45
+# Thema: Hält Kleidung warm?
+
+[Chunk 1: Experiment 1: Eiswürfel & Wollmütze] (procedure)
+Zwei Eiswürfel auf Teller; einen in Wollmütze stecken. Vorher Vermutung, nach 30 Min Beobachtung notieren.
+- Seitenverweis: S.45.
+------------------------------------------------------------
+[Chunk 2: Experiment 2: Temperatur messen] (procedure)
+Temperatur im Klassenraum vs. in der Wollmütze mit Thermometer messen und vergleichen.
+- Seitenverweis: S.45.
+------------------------------------------------------------
+[Chunk 3: Experiment 3: Warmes Wasser im Glas] (procedure)
+Zwei Gläser mit warmem Wasser; eines mit Wollmütze abdecken. Temperaturen nach 10/20/30 Min protokollieren.
+- Seitenverweis: S.45.
+------------------------------------------------------------
+[Chunk 4: Erkenntnis] (fact)
+Warme Kleidung isoliert und verlangsamt das Abkühlen – sie erzeugt keine Wärme.
+- Seitenverweis: S.45.
+------------------------------------------------------------

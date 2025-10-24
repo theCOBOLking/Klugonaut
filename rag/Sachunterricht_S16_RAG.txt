@@ -1,0 +1,23 @@
+# Seite 16
+# Thema: Der Magnetismus – Experimente
+
+[Chunk 1: Was ist Magnetismus?] (overview)
+Magnetismus wirkt auf Metalle wie Eisen, Stahl, Nickel. Magnete haben Nord- und Südpol; stärkste Wirkung an den Enden.
+- Seitenverweis: S.16.
+------------------------------------------------------------
+[Chunk 2: Magnetformen] (fact)
+Stabmagnet, Ringmagnet, Hufeisenmagnet – unterschiedliche Formen, gleiche Grundwirkung.
+- Seitenverweis: S.16.
+------------------------------------------------------------
+[Chunk 3: Methode: Beobachtungsheft führen] (procedure)
+Für jedes Experiment neue Seite mit Titel, Datum, Zeichnung/Notizen. Möglichst genau beobachten; Fotos einkleben erlaubt.
+- Seitenverweis: S.16.
+------------------------------------------------------------
+[Chunk 4: Experiment 1: Stabmagnete – Pole zueinander] (activity)
+Hält man gleiche Pole zusammen, stoßen sie sich ab; ungleiche Pole ziehen sich an. Beobachtung dokumentieren.
+- Seitenverweis: S.16.
+------------------------------------------------------------
+[Chunk 5: Experiment 2: Welche Münzteile sind magnetisch?] (activity)
+Mit Magnet prüfen: 1‑Euro- und 2‑Euro‑Münze haben magnetische Innen-/Außenteile (abhängig von Materialmix).
+- Seitenverweis: S.16.
+------------------------------------------------------------

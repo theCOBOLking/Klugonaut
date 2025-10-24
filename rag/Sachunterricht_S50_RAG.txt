@@ -1,0 +1,11 @@
+# Seite 50
+# Thema: Wir bringen das Lämpchen zum Leuchten
+
+[Chunk 1: Einfacher Stromkreis – Skizze] (procedure)
+Stromquelle (Batterie) + Leiter (Kabel) + Verbraucher (Lämpchen) → geschlossener Kreis nötig. Skizze anfertigen und ausprobieren.
+- Seitenverweis: S.50.
+------------------------------------------------------------
+[Chunk 2: Leiten Materialien Strom?] (activity)
+Vermutungen notieren; Gegenstände testen (Schlüssel, Bleistiftmine, Papier, Kunststoff, Münze). Beobachtungen protokollieren.
+- Seitenverweis: S.50.
+------------------------------------------------------------

@@ -1,0 +1,11 @@
+# Seite 47
+# Thema: Warum schwimmt ein Schiff?
+
+[Chunk 1: Warum schwimmt ein Schiff? – Orange-Experiment] (procedure)
+Orange mit Schale vs. ohne Schale wiegen und ins Wasser legen; Schale enthält Luftkammern → schwimmt besser.
+- Seitenverweis: S.47.
+------------------------------------------------------------
+[Chunk 2: Boot aus Knete] (activity)
+Knetkugel wiegen und ins Wasser legen (sinkt). Knete zu Boot formen, erneut testen (schwimmt, wenn verdrängtes Wassergewicht ≥ Eigengewicht).
+- Seitenverweis: S.47.
+------------------------------------------------------------

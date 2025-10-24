@@ -1,0 +1,15 @@
+# Seite 61
+# Thema: Innere Organe – Lesekarten 1
+
+[Chunk 1: Lesekarte: Das Herz] (fact)
+Wichtigstes Organ, faustgroß, pumpt Blut ohne Pause; bringt Sauerstoff in Zellen.
+- Seitenverweis: S.61.
+------------------------------------------------------------
+[Chunk 2: Lesekarte: Die Lunge] (fact)
+Zwei Lungenflügel, in der Brust geschützt; nimmt Sauerstoff auf, gibt Kohlendioxid ab.
+- Seitenverweis: S.61.
+------------------------------------------------------------
+[Chunk 3: Lesekarte: Der Magen] (fact)
+Vorratskammer für Speisebrei; durchmischt mit Magensaft; gut gekaute Nahrung verlässt schneller den Magen.
+- Seitenverweis: S.61.
+------------------------------------------------------------

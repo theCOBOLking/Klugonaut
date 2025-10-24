@@ -1,0 +1,15 @@
+# Seite 13
+# Thema: Von der Wirklichkeit zum Grundriss (Klassenmodell)
+
+[Chunk 1: Begriff: Grundriss] (definition)
+Ein Plan zeigt die Wirklichkeit verkleinert und vereinfacht. Die Draufsicht (Blick von oben) bildet die Grundlage für den Grundriss.
+- Seitenverweis: S.13.
+------------------------------------------------------------
+[Chunk 2: Aufgabe 1: Grundriss unserer Klasse – Material & Schritte] (procedure)
+a) Große Schachtel als Klassenraum. b) Kleine Schachteln/Flaschenverschlüsse als Möbel. c) Klarsichtfolie über das Modell legen und mit Klebeband fixieren. d) Mit Folienstift Grundrisse der Schachteln/Verschlüsse nachzeichnen. e) Fertig: Grundriss der Klasse.
+- Seitenverweis: S.13.
+------------------------------------------------------------
+[Chunk 3: Materialliste] (list)
+Große Schachtel, viele kleine Schachteln, Flaschenverschlüsse, Klebstoff/Klebestreifen, Klarsichtfolie, Folienstift.
+- Seitenverweis: S.13.
+------------------------------------------------------------
