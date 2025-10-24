@@ -31,9 +31,9 @@ Dann im Browser öffnen: http://localhost:5000
 - POST /api/generateSheet  (Body: { "topic": "..." })
 - POST /api/topicData      (Body: { "topic": "..." })
 
-## 🤖 Gemini-Konfiguration
-- Kopiere `.env.example` zu `.env` und trage deinen Schlüssel bei `GEMINI_API_KEY` ein.
-- Alternativ kannst du den API-Schlüssel als Umgebungsvariable `GEMINI_API_KEY` oder `GOOGLE_GEMINI_API_KEY` setzen.
-- Optional: `GEMINI_MODEL` (Standard: `gemini-1.5-pro`).
-- Optional: `DEBUG_GEMINI` (auf `true` setzen, um ausführliche Debug-Ausgaben im Server-Log zu aktivieren).
+## 🤖 Google-AI-Konfiguration (Gemma/Gemini)
+- Kopiere `.env.example` zu `.env` und trage deinen Schlüssel bei `GEMINI_API_KEY` ein (oder nutze `GOOGLE_GEMINI_API_KEY` / `GOOGLE_API_KEY`).
+- Optional: `GEMINI_MODEL` oder `GOOGLE_MODEL` (Standard: `gemma-7b-it`).
+- Hinweis: Gemma-Modelle unterstützen keine separaten Entwickleranweisungen. Der Server kombiniert daher automatisch System- und Nutzerprompt.
+- Optional: `DEBUG_GEMINI` oder `DEBUG_GOOGLE_MODEL` (auf `true` setzen, um ausführliche Debug-Ausgaben im Server-Log zu aktivieren).
 - Wenn kein Schlüssel verfügbar ist oder die API einen Fehler liefert, nutzt der Server automatisch die lokalen Fallback-Daten.

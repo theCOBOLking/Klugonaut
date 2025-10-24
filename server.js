@@ -19,9 +19,13 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY || "";
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-pro";
-const DEBUG_GEMINI = String(process.env.DEBUG_GEMINI || "").toLowerCase() === "true";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+  || process.env.GOOGLE_GEMINI_API_KEY
+  || process.env.GOOGLE_API_KEY
+  || "";
+const GEMINI_MODEL = process.env.GOOGLE_MODEL || process.env.GEMINI_MODEL || "gemma-7b-it";
+const DEBUG_GEMINI = String(process.env.DEBUG_GEMINI || process.env.DEBUG_GOOGLE_MODEL || "")
+  .toLowerCase() === "true";
 
 app.use(cors());
 app.use(express.json());
@@ -637,9 +641,10 @@ async function callGeminiJson(systemPrompt, userPrompt, options = {}) {
   }
 
   const model = options.model || GEMINI_MODEL;
+  const isGemmaModel = /gemma/i.test(model);
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 
-  logGeminiDebug("Sende Anfrage an Gemini", {
+  logGeminiDebug(`Sende Anfrage an ${isGemmaModel ? "Gemma" : "Gemini"}`, {
     model,
     temperature: options.temperature ?? 0.7,
     topK: options.topK ?? 40,
@@ -648,32 +653,53 @@ async function callGeminiJson(systemPrompt, userPrompt, options = {}) {
     userPromptPreview: userPrompt.slice(0, 200)
   });
 
+  const contents = [];
+
+  if (isGemmaModel) {
+    const combinedPrompt = [
+      systemPrompt?.trim() ? `Anweisungen:\n${systemPrompt.trim()}` : "",
+      userPrompt?.trim() ? `Aufgabe:\n${userPrompt.trim()}` : ""
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    contents.push({
+      role: "user",
+      parts: [{ text: combinedPrompt || userPrompt || "" }]
+    });
+  } else {
+    contents.push({
+      role: "user",
+      parts: [{ text: userPrompt }]
+    });
+  }
+
+  const requestBody = {
+    contents,
+    generationConfig: {
+      temperature: options.temperature ?? 0.7,
+      topK: options.topK ?? 40,
+      topP: options.topP ?? 0.95,
+      responseMimeType: "application/json"
+    }
+  };
+
+  if (!isGemmaModel) {
+    requestBody.systemInstruction = {
+      role: "system",
+      parts: [{ text: systemPrompt }]
+    };
+  }
+
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: {
-        role: "system",
-        parts: [{ text: systemPrompt }]
-      },
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: userPrompt }]
-        }
-      ],
-      generationConfig: {
-        temperature: options.temperature ?? 0.7,
-        topK: options.topK ?? 40,
-        topP: options.topP ?? 0.95,
-        responseMimeType: "application/json"
-      }
-    })
+    body: JSON.stringify(requestBody)
   });
 
   const payload = await response.json();
 
-  logGeminiDebug("Antwort von Gemini erhalten", {
+  logGeminiDebug(`Antwort von ${isGemmaModel ? "Gemma" : "Gemini"} erhalten`, {
     status: response.status,
     ok: response.ok,
     payloadPreview: JSON.stringify(payload).slice(0, 500)
@@ -688,10 +714,10 @@ async function callGeminiJson(systemPrompt, userPrompt, options = {}) {
   const text = parts.map(part => part.text || "").join("").trim();
 
   if (!text) {
-    throw new Error("Gemini API lieferte keinen Text");
+    throw new Error(`${isGemmaModel ? "Gemma" : "Gemini"} API lieferte keinen Text`);
   }
 
-  logGeminiDebug("Gemini Textantwort", text.slice(0, 500));
+  logGeminiDebug(`${isGemmaModel ? "Gemma" : "Gemini"} Textantwort`, text.slice(0, 500));
 
   return parseGeminiJson(text);
 }
@@ -762,7 +788,7 @@ function isValidMillionenshowQuestions(data) {
 }
 
 function logGeminiError(scope, error) {
-  console.error(`❌ Gemini Fehler bei ${scope}:`, error?.message || error);
+  console.error(`❌ KI-Fehler bei ${scope}:`, error?.message || error);
 }
 
 function logGeminiDebug(message, details) {
@@ -771,11 +797,11 @@ function logGeminiDebug(message, details) {
   }
 
   if (details !== undefined) {
-    console.log(`🐞 Gemini Debug: ${message}`, details);
+    console.log(`🐞 KI Debug: ${message}`, details);
     return;
   }
 
-  console.log(`🐞 Gemini Debug: ${message}`);
+  console.log(`🐞 KI Debug: ${message}`);
 }
 
 function getTopicLabel(descriptor) {
