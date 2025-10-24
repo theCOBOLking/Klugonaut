@@ -68,12 +68,31 @@ app.post("/api/topicData", async (req, res) => {
   }
 });
 
+app.post("/api/generateQuestions", async (req, res) => {
+  const rawTopic = req.body?.topic || "Allgemeines Wissen";
+  const descriptor = parseTopicDescriptor(rawTopic);
+  const ragContext = await loadRagContext(descriptor.pages);
+
+  try {
+    const questions = await generateMillionenshowQuestions(descriptor, ragContext);
+    if (isValidMillionenshowQuestions(questions)) {
+      res.json(questions);
+      return;
+    }
+    throw new Error("Ungültige Antwort der Gemini API");
+  } catch (error) {
+    logGeminiError("/api/generateQuestions", error);
+    res.json(buildFallbackMillionenshowQuestions(descriptor));
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Klugonaut Backend läuft auf http://localhost:${PORT}`);
   console.log("🌐 API-Endpunkte:");
   console.log("   → GET  /api/chapters?part=A|B|C");
   console.log("   → POST /api/generateSheet");
   console.log("   → POST /api/topicData");
+  console.log("   → POST /api/generateQuestions");
 });
 
 function buildFallbackWorksheet(descriptor) {
@@ -88,6 +107,121 @@ function buildFallbackWorksheet(descriptor) {
       "4️⃣ Was passiert, wenn du dieses Wissen anwendest?",
       "5️⃣ Fasse in einem Satz zusammen, warum dieses Thema wichtig ist."
     ]
+  };
+}
+
+function buildFallbackMillionenshowQuestions(descriptor) {
+  const topicLabel = getTopicLabel(descriptor);
+  const templates = [
+    {
+      question: `Was beschreibt am besten das Thema "${topicLabel}"?`,
+      answers: [
+        "Eine kindgerechte Erklärung in eigenen Worten",
+        "Ein zufälliges Fantasiewort",
+        "Eine Zahl ohne Bezug",
+        "Ein Emoji"
+      ],
+      hint: "Stell dir vor, du erklärst das Thema einem Freund oder einer Freundin."
+    },
+    {
+      question: `Welche Aussage passt besonders gut zu "${topicLabel}"?`,
+      answers: [
+        "Sie hilft uns, den Alltag besser zu verstehen.",
+        "Sie hat nichts mit unserem Leben zu tun.",
+        "Sie beschreibt nur Märchen.",
+        "Sie besteht nur aus Zahlen."
+      ],
+      hint: "Warum lernt ihr dieses Thema in der Schule?"
+    },
+    {
+      question: `Welcher Begriff gehört direkt zu "${topicLabel}"?`,
+      answers: [
+        "Ein wichtiges Stichwort aus dem Thema",
+        "Der Name eines Haustiers",
+        "Ein Computerspiel",
+        "Eine Hausnummer"
+      ],
+      hint: "Welche Wörter fallen dir beim Thema als erstes ein?"
+    },
+    {
+      question: `Was könntest du zu "${topicLabel}" beobachten oder untersuchen?`,
+      answers: [
+        "Etwas, das genau damit zu tun hat",
+        "Nur die Wettervorhersage",
+        "Deine Lieblingsfarbe",
+        "Ein zufälliges Geräusch"
+      ],
+      hint: "Gute Beobachtungen helfen dir, das Thema zu verstehen."
+    },
+    {
+      question: `Wobei hilft dir Wissen über "${topicLabel}"?`,
+      answers: [
+        "Beim Lösen von Aufgaben rund um das Thema",
+        "Nur beim Computerspielen",
+        "Es bringt überhaupt nichts",
+        "Es dient nur zum Angeben"
+      ],
+      hint: "Denke daran, wie du das Thema im Alltag nutzen kannst."
+    },
+    {
+      question: `Welches Beispiel passt am besten zu "${topicLabel}"?`,
+      answers: [
+        "Eine Szene, in der das Thema wichtig ist",
+        "Ein lustiger Witz",
+        "Ein völlig anderes Schulfach",
+        "Ein Fantasiename"
+      ],
+      hint: "Stell dir vor, du erzählst eine Geschichte zu dem Thema."
+    },
+    {
+      question: `Welche Frage könntest du anderen zu "${topicLabel}" stellen?`,
+      answers: [
+        "Eine neugierige Frage, die mehr erklärt",
+        "Was ist dein Lieblingslied?",
+        "Wie spät ist es?",
+        "Keine Frage"
+      ],
+      hint: "Mit guten Fragen findest du mehr heraus."
+    },
+    {
+      question: `Wie würdest du "${topicLabel}" kurz erklären?`,
+      answers: [
+        "Mit einfachen Worten und Beispielen",
+        "Nur mit Zahlen",
+        "Mit einer Geheimschrift",
+        "Gar nicht"
+      ],
+      hint: "Je einfacher die Erklärung, desto besser kann man sie verstehen."
+    },
+    {
+      question: `Was darfst du bei "${topicLabel}" nicht vergessen?`,
+      answers: [
+        "Den wichtigsten Gedanken des Themas",
+        "Eine zufällige Telefonnummer",
+        "Nur Nebensachen",
+        "Den Namen deines Haustiers"
+      ],
+      hint: "Jedes Thema hat eine Kernidee."
+    },
+    {
+      question: `Was kannst du nach dem Lernen über "${topicLabel}" besser?`,
+      answers: [
+        "Dinge erkennen oder anwenden, die dazu gehören",
+        "Nur schneller laufen",
+        "Besser zeichnen",
+        "Gar nichts Neues"
+      ],
+      hint: "Neues Wissen hilft dir immer weiter."
+    }
+  ];
+
+  return {
+    questions: templates.map(entry => ({
+      q: entry.question,
+      a: entry.answers,
+      correct: 0,
+      hint: entry.hint
+    }))
   };
 }
 
@@ -170,6 +304,65 @@ async function generateTopicDataWithGemini(descriptor, ragContext) {
   const userPrompt = promptParts.join("\n\n");
 
   return await callGeminiJson(systemPrompt, userPrompt, { temperature: 0.6 });
+}
+
+async function generateMillionenshowQuestions(descriptor, ragContext) {
+  const topicLabel = getTopicLabel(descriptor);
+  const chapterLabel = descriptor.chapter || "Sachunterricht";
+  const pageHint = descriptor.pages.length ? `Seiten ${descriptor.pages.join(", ")}` : "";
+  const sanitizedContext = ragContext?.trim();
+
+  const systemPrompt = [
+    "Du bist der Klugonaut, ein freundlicher Quizmaster für Grundschulkinder.",
+    "Erstelle genau 10 Multiple-Choice-Fragen im JSON-Format.",
+    '{',
+    '  "questions": [',
+    '    {',
+    '      "q": string,',
+    '      "a": string[4],',
+    '      "correct": number,',
+    '      "hint": string',
+    '    }',
+    '  ]',
+    '}',
+    "Nutze eine kindgerechte Sprache auf Deutsch.",
+    "Jede Frage benötigt vier eindeutige Antwortmöglichkeiten und genau einen korrekten Index (0-3).",
+    "Die Hinweise sollen hilfreiche Tipps zur richtigen Antwort geben.",
+    "Antworte ausschließlich mit gültigem JSON ohne erläuternden Text."
+  ].join("\n");
+
+  const promptParts = [];
+
+  if (sanitizedContext) {
+    const hint = pageHint ? ` (${pageHint})` : "";
+    promptParts.push(
+      `Nutze ausschließlich die folgenden Unterrichtsauszüge${hint} als Wissensquelle.\n"""\n${sanitizedContext}\n"""`
+    );
+  } else {
+    promptParts.push("Es liegt kein zusätzliches Material vor. Verwende altersgerechtes Sachwissen.");
+  }
+
+  promptParts.push(
+    `Kapitel: "${chapterLabel}" – Thema: "${topicLabel}". Erstelle ein spannendes Quiz mit 10 Fragen.`
+  );
+
+  const userPrompt = promptParts.join("\n\n");
+
+  const raw = await callGeminiJson(systemPrompt, userPrompt, { temperature: 0.55 });
+
+  if (Array.isArray(raw)) {
+    return { questions: raw };
+  }
+
+  if (Array.isArray(raw?.questions)) {
+    return { questions: raw.questions };
+  }
+
+  if (Array.isArray(raw?.quiz)) {
+    return { questions: raw.quiz };
+  }
+
+  return raw;
 }
 
 async function callGeminiJson(systemPrompt, userPrompt, options = {}) {
@@ -280,6 +473,26 @@ function isValidTopicData(data) {
   }
 
   return true;
+}
+
+function isValidMillionenshowQuestions(data) {
+  if (!data || typeof data !== "object") {
+    return false;
+  }
+
+  if (!Array.isArray(data.questions) || data.questions.length < 5) {
+    return false;
+  }
+
+  return data.questions.every(entry => {
+    if (!entry || typeof entry !== "object") return false;
+    if (typeof entry.q !== "string" || !entry.q.trim()) return false;
+    if (!Array.isArray(entry.a) || entry.a.length !== 4) return false;
+    if (!entry.a.every(ans => typeof ans === "string" && ans.trim().length > 0)) return false;
+    if (!Number.isInteger(entry.correct) || entry.correct < 0 || entry.correct > 3) return false;
+    if (typeof entry.hint !== "string") return false;
+    return true;
+  });
 }
 
 function logGeminiError(scope, error) {

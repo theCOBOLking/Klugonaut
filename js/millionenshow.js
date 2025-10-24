@@ -3,7 +3,7 @@
    =========================================================== */
 
 import { playSound, addPoint } from "./main.js";
-import { getTopicData } from "./topic-data.js";
+import { CONFIG, apiFetch } from "./config.js";
 
 export async function loadMillionenshow() {
   const topic = window.currentTopic || "Allgemeines Wissen";
@@ -18,16 +18,22 @@ export async function loadMillionenshow() {
     </div>
   `;
 
-  const topicData = await getTopicData(topic);
-  const questions = (topicData?.quiz?.length ? topicData.quiz : getFallbackQuestions()).map(q => ({
-    ...q,
-    q: q.q || q.question,
-    a: q.a || q.answers
-  }));
+  const loadingMessage = document.getElementById("question");
+  if (loadingMessage) {
+    loadingMessage.textContent = "⏳ Fragen werden geladen...";
+  }
+
+  const questions = await loadQuestions(topic);
 
   if (!questions.length) {
-    document.getElementById("question").textContent = "❌ Keine Fragen vorhanden.";
-    document.querySelector(".answers").innerHTML = "";
+    const questionEl = document.getElementById("question");
+    if (questionEl) {
+      questionEl.textContent = "❌ Keine Fragen vorhanden.";
+    }
+    const answersEl = document.querySelector(".answers");
+    if (answersEl) {
+      answersEl.innerHTML = "";
+    }
     return;
   }
 
@@ -37,7 +43,8 @@ export async function loadMillionenshow() {
   document.getElementById("joker").onclick = () => {
     const q = questions[current];
     const fb = document.getElementById("feedback");
-    fb.innerHTML = `🧠 <strong>Klugonaut:</strong> ${q.hint}`;
+    const hint = q.hint && q.hint.trim() ? q.hint : "Ich drücke dir die Daumen! Du schaffst das!";
+    fb.innerHTML = `🧠 <strong>Klugonaut:</strong> ${hint}`;
     fb.style.color = "#00eaff";
     playSound("tip");
   };
@@ -91,25 +98,175 @@ export async function loadMillionenshow() {
   }
 }
 
-function getFallbackQuestions() {
+async function loadQuestions(topic) {
+  const payload = await apiFetch(CONFIG.ai.questions, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ topic })
+  });
+
+  const fromApi = Array.isArray(payload?.questions)
+    ? payload.questions.map(normalizeQuestion).filter(Boolean)
+    : [];
+
+  if (fromApi.length) {
+    return fromApi;
+  }
+
+  return getFallbackQuestions(topic);
+}
+
+function normalizeQuestion(raw) {
+  if (!raw) return null;
+
+  const question = String(raw.q || raw.question || "").trim();
+  const answers = Array.isArray(raw.a)
+    ? raw.a
+    : Array.isArray(raw.answers)
+      ? raw.answers
+      : [];
+
+  const normalizedAnswers = answers
+    .map(ans => (typeof ans === "string" ? ans.trim() : ""))
+    .filter(ans => ans.length > 0);
+
+  const indexCandidate = raw.correct ?? raw.correctIndex;
+  const correctIndex = Number.isInteger(indexCandidate)
+    ? indexCandidate
+    : typeof indexCandidate === "string" && indexCandidate.trim() !== ""
+      ? Number.parseInt(indexCandidate, 10)
+      : -1;
+
+  if (
+    !question ||
+    normalizedAnswers.length < 2 ||
+    !Number.isInteger(correctIndex) ||
+    correctIndex < 0 ||
+    correctIndex >= normalizedAnswers.length
+  ) {
+    return null;
+  }
+
+  return {
+    q: question,
+    a: normalizedAnswers,
+    correct: correctIndex,
+    hint: typeof raw.hint === "string" ? raw.hint.trim() : ""
+  };
+}
+
+function getFallbackQuestions(topic = "Allgemeines Wissen") {
+  const topicLabel = typeof topic === "string" && topic.trim().length ? topic.trim() : "Allgemeines Wissen";
   return [
     {
-      q: "Welches Tier kann sowohl an Land als auch im Wasser leben?",
-      a: ["Frosch", "Vogel", "Katze", "Eichhörnchen"],
+      q: `Was beschreibt am besten das Thema "${topicLabel}"?`,
+      a: [
+        "Eine kurze Erklärung in eigenen Worten",
+        "Eine Zeichnung ohne Bezug",
+        "Ein komplett anderes Thema",
+        "Nur eine Zahl"
+      ],
       correct: 0,
-      hint: "Denke an Tiere, die Eier im Wasser legen und Kiemen haben, wenn sie jung sind."
+      hint: "Überlege, wie du das Thema jemandem erklären würdest."
     },
     {
-      q: "Was zeigt ein Kompass an?",
-      a: ["Den Norden", "Die Temperatur", "Die Höhe", "Die Zeit"],
+      q: `Welche Aussage passt zu "${topicLabel}"?`,
+      a: [
+        "Sie hilft uns, den Alltag besser zu verstehen.",
+        "Sie hat gar nichts mit unserem Leben zu tun.",
+        "Sie erklärt nur komplizierte Maschinen.",
+        "Sie handelt ausschließlich von Märchen."
+      ],
       correct: 0,
-      hint: "Er zeigt eine Himmelsrichtung an, die dir beim Orientieren hilft."
+      hint: "Denke daran, warum wir das Thema im Unterricht lernen."
     },
     {
-      q: "Woraus besteht der größte Teil der Erde?",
-      a: ["Wasser", "Land", "Eis", "Lava"],
+      q: `Welcher Begriff gehört zu "${topicLabel}"?`,
+      a: [
+        "Ein wichtiges Stichwort aus dem Thema",
+        "Der Name deiner Lieblingsserie",
+        "Ein zufälliger Fantasiebegriff",
+        "Eine Hausnummer"
+      ],
       correct: 0,
-      hint: "Schau auf den Globus – die blaue Fläche ist der größte Anteil."
+      hint: "Welche Wörter fallen dir beim Thema als erstes ein?"
+    },
+    {
+      q: `Was könntest du zu "${topicLabel}" beobachten oder messen?`,
+      a: [
+        "Etwas, das direkt mit dem Thema zusammenhängt",
+        "Nur das Wetter des Tages",
+        "Dein Lieblingsessen",
+        "Eine beliebige Fernsehsendung"
+      ],
+      correct: 0,
+      hint: "Überlege, welche Dinge man wirklich untersuchen kann."
+    },
+    {
+      q: `Wozu hilft das Wissen über "${topicLabel}"?`,
+      a: [
+        "Es macht dich sicherer und schlauer im Alltag.",
+        "Es bringt nur beim Computerspielen etwas.",
+        "Es verändert gar nichts.",
+        "Es ist nur zum Angeben da."
+      ],
+      correct: 0,
+      hint: "Wissen hilft uns, gute Entscheidungen zu treffen."
+    },
+    {
+      q: `Was wäre ein gutes Beispiel für "${topicLabel}"?`,
+      a: [
+        "Eine Situation, die wirklich dazu passt",
+        "Ein lustiger Witz",
+        "Ein komplett anderes Fach",
+        "Nur ein Emoji"
+      ],
+      correct: 0,
+      hint: "Stell dir eine Szene vor, in der das Thema wichtig ist."
+    },
+    {
+      q: `Welche Frage könntest du zu "${topicLabel}" stellen?`,
+      a: [
+        "Eine neugierige Frage, die weiterhilft",
+        "Eine Frage nach dem Lieblingssong",
+        "Eine Frage nach der Uhrzeit",
+        "Gar keine Frage"
+      ],
+      correct: 0,
+      hint: "Gute Fragen bringen dich beim Lernen weiter."
+    },
+    {
+      q: `Wie könntest du "${topicLabel}" anderen erklären?`,
+      a: [
+        "Mit einfachen Worten und Beispielen",
+        "Nur mit Zahlen",
+        "Mit einem geheimen Code",
+        "Gar nicht"
+      ],
+      correct: 0,
+      hint: "Je einfacher du es erklärst, desto besser."
+    },
+    {
+      q: `Was solltest du bei "${topicLabel}" auf keinen Fall vergessen?`,
+      a: [
+        "Den wichtigsten Kern des Themas",
+        "Nur die Randnotizen",
+        "Die Lieblingsfarbe deines Haustiers",
+        "Eine zufällige Telefonnummer"
+      ],
+      correct: 0,
+      hint: "Jedes Thema hat einen Hauptgedanken."
+    },
+    {
+      q: `Was kannst du nach dem Lernen über "${topicLabel}" besser?`,
+      a: [
+        "Dinge verstehen oder anwenden, die dazu gehören",
+        "Nur schneller laufen",
+        "Deine Handschrift ändern",
+        "Nichts Neues"
+      ],
+      correct: 0,
+      hint: "Denke daran, wozu neues Wissen gut ist."
     }
   ];
 }
