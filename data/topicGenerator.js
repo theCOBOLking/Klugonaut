@@ -1,5 +1,7 @@
+import { parseTopicDescriptor } from "./topicUtils.js";
+
 export function generateTopicData(rawTopic = "Allgemeines Wissen") {
-  const { chapter, topic } = parseTopic(rawTopic);
+  const { chapter, topic } = parseTopicDescriptor(rawTopic);
   const keywords = buildKeywords(topic);
 
   return {
@@ -12,17 +14,6 @@ export function generateTopicData(rawTopic = "Allgemeines Wissen") {
     connections: buildConnections(topic, chapter),
     chains: buildChains(topic, chapter)
   };
-}
-
-function parseTopic(raw = "Allgemeines Wissen") {
-  if (!raw || typeof raw !== "string") {
-    return { chapter: "Sachunterricht", topic: "Allgemeines Wissen" };
-  }
-  const parts = raw.split("–").map(p => p.trim()).filter(Boolean);
-  if (parts.length >= 2) {
-    return { chapter: parts[0], topic: parts.slice(1).join(" – ") };
-  }
-  return { chapter: "Sachunterricht", topic: parts[0] || "Allgemeines Wissen" };
 }
 
 function buildKeywords(topic) {

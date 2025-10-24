@@ -9,6 +9,8 @@ import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { CHAPTERS } from "./data/chapters.js";
 import { generateTopicData } from "./data/topicGenerator.js";
+import { parseTopicDescriptor } from "./data/topicUtils.js";
+import { loadRagContext } from "./rag/ragLoader.js";
 
 dotenv.config();
 
@@ -30,10 +32,12 @@ app.get("/api/chapters", (req, res) => {
 });
 
 app.post("/api/generateSheet", async (req, res) => {
-  const topic = req.body?.topic || "Allgemeines Wissen";
+  const rawTopic = req.body?.topic || "Allgemeines Wissen";
+  const descriptor = parseTopicDescriptor(rawTopic);
+  const ragContext = await loadRagContext(descriptor.pages);
 
   try {
-    const sheet = await generateWorksheetWithGemini(topic);
+    const sheet = await generateWorksheetWithGemini(descriptor, ragContext);
     if (isValidWorksheet(sheet)) {
       res.json(sheet);
       return;
@@ -41,15 +45,17 @@ app.post("/api/generateSheet", async (req, res) => {
     throw new Error("Ungültige Antwort der Gemini API");
   } catch (error) {
     logGeminiError("/api/generateSheet", error);
-    res.json(buildFallbackWorksheet(topic));
+    res.json(buildFallbackWorksheet(descriptor));
   }
 });
 
 app.post("/api/topicData", async (req, res) => {
-  const topic = req.body?.topic || "Allgemeines Wissen";
+  const rawTopic = req.body?.topic || "Allgemeines Wissen";
+  const descriptor = parseTopicDescriptor(rawTopic);
+  const ragContext = await loadRagContext(descriptor.pages);
 
   try {
-    const data = await generateTopicDataWithGemini(topic);
+    const data = await generateTopicDataWithGemini(descriptor, ragContext);
     if (isValidTopicData(data)) {
       res.json(data);
       return;
@@ -57,7 +63,7 @@ app.post("/api/topicData", async (req, res) => {
     throw new Error("Ungültige Antwort der Gemini API");
   } catch (error) {
     logGeminiError("/api/topicData", error);
-    res.json(generateTopicData(topic));
+    res.json(generateTopicData(descriptor.fullTitle));
   }
 });
 
@@ -69,12 +75,13 @@ app.listen(PORT, () => {
   console.log("   → POST /api/topicData");
 });
 
-function buildFallbackWorksheet(topic) {
+function buildFallbackWorksheet(descriptor) {
+  const topicLabel = getTopicLabel(descriptor);
   return {
-    title: `Arbeitsblatt: ${topic}`,
+    title: `Arbeitsblatt: ${topicLabel}`,
     subtitle: "Wissen vertiefen mit dem Klugonaut 🚀",
     questions: [
-      `1️⃣ Erkläre das Thema "${topic}" in eigenen Worten.`,
+      `1️⃣ Erkläre das Thema "${topicLabel}" in eigenen Worten.`,
       "2️⃣ Zeichne oder beschreibe etwas, das dazu passt.",
       "3️⃣ Ergänze: Das Wichtigste daran ist _______.",
       "4️⃣ Was passiert, wenn du dieses Wissen anwendest?",
@@ -83,7 +90,12 @@ function buildFallbackWorksheet(topic) {
   };
 }
 
-async function generateWorksheetWithGemini(topic) {
+async function generateWorksheetWithGemini(descriptor, ragContext) {
+  const topicLabel = getTopicLabel(descriptor);
+  const chapterLabel = descriptor.chapter || "Sachunterricht";
+  const pageHint = descriptor.pages.length ? `Seiten ${descriptor.pages.join(", ")}` : "";
+  const sanitizedContext = ragContext?.trim();
+
   const systemPrompt = [
     "Du bist der Klugonaut, ein lernfreundlicher Assistent für Kinder.",
     "Erstelle ein strukturiertes Arbeitsblatt als JSON.",
@@ -94,12 +106,32 @@ async function generateWorksheetWithGemini(topic) {
     "Antworte ausschließlich mit gültigem JSON ohne zusätzliche Erklärungen."
   ].join("\n");
 
-  const userPrompt = `Thema: ${topic}. Erstelle ein vollständiges Arbeitsblatt.`;
+  const promptParts = [];
+
+  if (sanitizedContext) {
+    const hint = pageHint ? ` (${pageHint})` : "";
+    promptParts.push(
+      `Nutze ausschließlich die folgenden Unterrichtsauszüge${hint} als Wissensbasis.\n"""\n${sanitizedContext}\n"""`
+    );
+  } else {
+    promptParts.push("Es liegt kein zusätzliches Material vor. Nutze dein Grundschulwissen und bleibe sachlich korrekt.");
+  }
+
+  promptParts.push(
+    `Thema: "${topicLabel}" im Kapitel "${chapterLabel}". Erstelle ein vollständiges Arbeitsblatt.`
+  );
+
+  const userPrompt = promptParts.join("\n\n");
 
   return await callGeminiJson(systemPrompt, userPrompt, { temperature: 0.65 });
 }
 
-async function generateTopicDataWithGemini(topic) {
+async function generateTopicDataWithGemini(descriptor, ragContext) {
+  const topicLabel = getTopicLabel(descriptor);
+  const chapterLabel = descriptor.chapter || "Sachunterricht";
+  const pageHint = descriptor.pages.length ? `Seiten ${descriptor.pages.join(", ")}` : "";
+  const sanitizedContext = ragContext?.trim();
+
   const systemPrompt = [
     "Du unterstützt Grundschulkinder beim Entdecken neuer Themen.",
     "Antworte ausschließlich mit JSON, ohne erläuternden Text.",
@@ -119,7 +151,22 @@ async function generateTopicDataWithGemini(topic) {
     "Alle Arrays müssen vollständig gefüllt sein."
   ].join("\n");
 
-  const userPrompt = `Erstelle Lernmaterialien zum Thema: ${topic}.`;
+  const promptParts = [];
+
+  if (sanitizedContext) {
+    const hint = pageHint ? ` (${pageHint})` : "";
+    promptParts.push(
+      `Analysiere die folgenden Schulbuchauszüge${hint} und nutze sie als alleinige Wissensquelle.\n"""\n${sanitizedContext}\n"""`
+    );
+  } else {
+    promptParts.push("Es liegt kein zusätzliches Material vor. Verwende grundlegendes Wissen für Grundschulkinder.");
+  }
+
+  promptParts.push(
+    `Erstelle Lernmaterialien zum Thema "${topicLabel}" für das Kapitel "${chapterLabel}".`
+  );
+
+  const userPrompt = promptParts.join("\n\n");
 
   return await callGeminiJson(systemPrompt, userPrompt, { temperature: 0.6 });
 }
@@ -219,4 +266,16 @@ function isValidTopicData(data) {
 
 function logGeminiError(scope, error) {
   console.error(`❌ Gemini Fehler bei ${scope}:`, error?.message || error);
+}
+
+function getTopicLabel(descriptor) {
+  if (!descriptor) {
+    return "Allgemeines Wissen";
+  }
+
+  if (descriptor.topic && descriptor.chapter && descriptor.topic !== descriptor.chapter) {
+    return descriptor.topic;
+  }
+
+  return descriptor.topic || descriptor.fullTitle || descriptor.chapter || "Allgemeines Wissen";
 }
