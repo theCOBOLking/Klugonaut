@@ -1,0 +1,379 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+:root {
+  --primary:#00eaff;
+  --accent:#ffcc00;
+  --success:#3cff79;
+  --error:#ff3355;
+  --bg:radial-gradient(circle at center,#01010a 0%,#000 100%);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:"Poppins",sans-serif;
+  background:var(--bg);
+  color:#eaf6ff;
+  height:100vh;
+  overflow:hidden;
+}
+
+#mission-container{display:flex;flex-direction:column;height:100vh;}
+#main-content{flex:1;display:flex;}
+
+/* ======================= Panels ======================= */
+#left-panel,#right-panel{
+  width:20%;
+  background:rgba(255,255,255,.05);
+  padding:10px;
+  overflow-y:auto;
+  border:1px solid rgba(0,238,255,.1);
+}
+#left-panel{
+  display:flex;
+  flex-direction:column;
+  box-shadow:inset -2px 0 10px rgba(0,238,255,.2);
+}
+#right-panel{
+  box-shadow:inset 2px 0 10px rgba(0,238,255,.2);
+}
+#left-panel h2,#right-panel h2{
+  text-align:center;
+  margin-bottom:10px;
+  color:var(--accent);
+  text-shadow:0 0 10px var(--primary);
+}
+
+button{
+  background:rgba(0,238,255,.1);
+  border:2px solid var(--primary);
+  color:#fff;
+  border-radius:10px;
+  padding:8px 12px;
+  cursor:pointer;
+  transition:.3s;
+  margin:4px 0;
+}
+button:hover{
+  background:var(--primary);
+  color:#000;
+  box-shadow:0 0 15px var(--primary);
+}
+
+/* ======================= Center Panel ======================= */
+#center-panel{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  position:relative;
+  overflow:hidden;
+}
+#game-area{
+  width:85%;
+  max-width:800px;
+  height:500px;
+  border:2px solid var(--primary);
+  border-radius:15px;
+  background:rgba(5,10,20,.7);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:20px;
+  color:#fff;
+  overflow:auto;
+  box-shadow:0 0 25px rgba(0,238,255,0.3);
+}
+
+/* ======================= Akkordeon Menü ======================= */
+.chapter{
+  margin-top:10px;
+  background:rgba(255,255,255,.07);
+  border-radius:8px;
+  overflow:hidden;
+}
+.chapter h3{
+  margin:0;
+  padding:10px;
+  cursor:pointer;
+  background:rgba(0,238,255,.15);
+  color:var(--accent);
+  user-select:none;
+  font-weight:600;
+}
+.chapter h3:hover{background:rgba(0,238,255,.3);}
+.subtopics{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.4s ease, opacity 0.4s ease;
+  opacity:0;
+  background:rgba(255,255,255,.05);
+}
+.subtopics.open{
+  max-height:600px;
+  opacity:1;
+}
+.subtopics button{
+  display:block;
+  text-align:left;
+  width:100%;
+  padding:6px 10px;
+  font-size:.9em;
+}
+
+/* ======================= Millionenshow Layout ======================= */
+#quiz-stage{text-align:center;width:90%;max-width:700px;}
+#question{
+  font-size:1.4em;
+  margin-bottom:20px;
+  color:var(--accent);
+  text-shadow:0 0 15px var(--primary);
+}
+.answers{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+.answer{
+  border:2px solid var(--primary);
+  padding:12px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.08);
+  font-size:1.05em;
+  cursor:pointer;
+  transition:all .3s;
+}
+.answer:hover{
+  background:var(--primary);
+  color:#000;
+  box-shadow:0 0 20px var(--primary);
+}
+.answer.correct{
+  background:var(--success);
+  color:#000;
+  box-shadow:0 0 30px var(--success);
+}
+.answer.wrong{
+  background:var(--error);
+  box-shadow:0 0 30px var(--error);
+}
+#feedback{
+  margin-top:20px;
+  font-size:1.3em;
+  font-weight:600;
+  height:30px;
+  transition:opacity .4s;
+}
+
+/* ======================= Worksheet Generator ======================= */
+#worksheet-module { text-align:center; }
+.glow-btn {
+  margin-top:15px;
+  background:linear-gradient(90deg,#00eaff,#0088ff);
+  border:none;
+  color:#fff;
+  font-weight:600;
+  padding:10px 16px;
+  border-radius:8px;
+  cursor:pointer;
+  box-shadow:0 0 10px rgba(0,238,255,0.5);
+  transition:all .3s;
+}
+.glow-btn:hover {
+  box-shadow:0 0 20px #00eaff;
+  transform:scale(1.05);
+}
+.worksheet-preview {
+  margin-top:20px;
+  background:rgba(255,255,255,0.05);
+  border:2px solid var(--primary);
+  border-radius:10px;
+  padding:15px;
+  color:#fff;
+  text-align:left;
+  box-shadow:0 0 15px rgba(0,238,255,0.3);
+}
+.worksheet-preview h2 {
+  color:var(--accent);
+  text-shadow:0 0 10px var(--primary);
+}
+.loader {
+  border:4px solid rgba(255,255,255,0.1);
+  border-top:4px solid var(--primary);
+  border-radius:50%;
+  width:40px;
+  height:40px;
+  animation:spin 1s linear infinite;
+  margin:10px auto;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ======================= Memory Styles ======================= */
+#memory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 80px);
+  grid-gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+.memory-card {
+  width: 80px;
+  height: 80px;
+  perspective: 600px;
+  position: relative;
+  cursor: pointer;
+}
+.memory-card span {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size: 2em;
+  border-radius: 10px;
+  backface-visibility: hidden;
+  transition: transform 0.5s;
+}
+.memory-card .front {
+  background: rgba(255,255,255,0.1);
+  border: 2px solid var(--primary);
+}
+.memory-card .back {
+  background: var(--primary);
+  transform: rotateY(180deg);
+  box-shadow: 0 0 10px var(--primary);
+}
+.memory-card.flipped .front { transform: rotateY(180deg); }
+.memory-card.flipped .back { transform: rotateY(0); }
+.memory-card.matched .back { background: var(--success); color:#000; }
+
+/* ======================= Kettenreaktion Styles ======================= */
+#chain-list {
+  list-style:none;
+  padding:0;
+  margin-top:15px;
+  width:90%;
+  max-width:500px;
+}
+.chain-item {
+  background:rgba(255,255,255,0.08);
+  border:2px solid var(--primary);
+  padding:8px 12px;
+  margin:6px 0;
+  border-radius:8px;
+  cursor:grab;
+  transition:all 0.2s;
+}
+.chain-item:hover {
+  background:rgba(0,238,255,0.2);
+  transform:scale(1.02);
+}
+
+/* ======================= Begriffe verbinden Styles ======================= */
+#connect-container {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  margin-top: 20px;
+}
+#left-side, #right-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.connect-item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid var(--primary);
+  min-width: 180px;
+  text-align: center;
+  cursor: grab;
+  transition: all 0.2s;
+}
+.connect-item:hover {
+  transform: scale(1.05);
+  background: rgba(0,238,255,0.2);
+}
+.connect-item.matched {
+  background: var(--success);
+  color: #000;
+  box-shadow: 0 0 15px var(--success);
+}
+.connect-item.wrong {
+  background: var(--error);
+  box-shadow: 0 0 15px var(--error);
+}
+
+/* ======================= Rakete ======================= */
+#mission-footer{
+  height:90px;
+  background:rgba(255,255,255,.05);
+  border-top:1px solid rgba(255,255,255,.1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#rocket-bar{
+  width:80%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:relative;
+}
+#rocket-track{
+  flex:1;
+  height:8px;
+  background:rgba(255,255,255,.1);
+  border-radius:4px;
+  margin:0 10px;
+  position:relative;
+}
+#fuel{
+  position:absolute;
+  top:0;left:0;
+  height:8px;
+  width:0%;
+  background:var(--primary);
+  border-radius:4px;
+  box-shadow:0 0 15px var(--primary);
+  transition:width 1s ease;
+}
+#rocket{
+  position:absolute;
+  top:-25px;
+  left:0%;
+  width:40px;
+  transition:left 1s ease;
+  filter:drop-shadow(0 0 8px var(--primary));
+}
+.planet{
+  width:50px;
+  filter:drop-shadow(0 0 5px var(--accent));
+}
+
+/* Floating mission messages */
+.floating-msg {
+  position: fixed;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,238,255,0.15);
+  border: 2px solid var(--primary);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 15px;
+  font-size: 1.2em;
+  box-shadow: 0 0 25px var(--primary);
+  animation: fadeUp 3s ease forwards;
+  z-index: 1000;
+}
+@keyframes fadeUp {
+  0% {opacity:0; transform:translate(-50%, 20px);}
+  20% {opacity:1;}
+  80% {opacity:1;}
+  100% {opacity:0; transform:translate(-50%, -60px);}
+}

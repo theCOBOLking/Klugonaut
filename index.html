@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Klugonaut – Lernmission</title>
+
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div id="mission-container">
+    <div id="main-content">
+      <!-- ====== Spiele-Menü (links) ====== -->
+      <aside id="left-panel">
+        <h2>🎮 Spiele</h2>
+        <button data-game="millionenshow">🎬 Millionenshow</button>
+        <button data-game="memory">🧠 Memory</button>
+        <button data-game="werbinich">🐾 Wer bin ich?</button>
+        <button data-game="kettenreaktion">⚙️ Kettenreaktion</button>
+        <button data-game="waspassiertwenn">💬 Was passiert wenn?</button>
+        <button data-game="begriffeverbinden">🔗 Begriffe verbinden</button>
+        <button data-game="arbeitsblatt">📄 Arbeitsblätter</button>
+        <hr />
+        <button id="to-b">➡️ Weiter zum B-Teil</button>
+        <button id="to-c">🏔 Weiter zum Bundesländer-Teil</button>
+      </aside>
+
+      <!-- ====== Spielfeld (Mitte) ====== -->
+      <main id="center-panel">
+        <div id="game-area">
+          <h2>👨‍🚀 Willkommen auf deiner Mission!</h2>
+          <p>Wähle links ein Spiel und rechts ein Thema,<br />dann startet dein Abenteuer ✨</p>
+        </div>
+      </main>
+
+      <!-- ====== Themen-Menü (rechts) ====== -->
+      <aside id="right-panel">
+        <h2>📘 Themen</h2>
+        <p>Lade Themen aus dem Backend...</p>
+      </aside>
+    </div>
+
+    <!-- ====== Klugonaut-Raketenanzeige (Mission-Status) ====== -->
+    <footer id="mission-footer">
+      <div id="rocket-bar">
+        <img src="assets/planets/earth.png" class="planet" />
+        <div id="rocket-track">
+          <div id="fuel"></div>
+          <img id="rocket" src="assets/planets/rocket.png" />
+        </div>
+        <img src="assets/planets/moon.png" class="planet" />
+        <img src="assets/planets/mars.png" class="planet" />
+        <img src="assets/planets/sun.png" class="planet" />
+      </div>
+    </footer>
+  </div>
+
+  <!-- ====== Skripte laden (ES Modules) ====== -->
+  <script type="module" src="js/config.js"></script>
+  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/arbeitsblatt.js"></script>
+  <script type="module" src="js/millionenshow.js"></script>
+  <script type="module" src="js/memory.js"></script>
+  <script type="module" src="js/werbinich.js"></script>
+  <script type="module" src="js/kettenreaktion.js"></script>
+  <script type="module" src="js/waspassiertwenn.js"></script>
+  <script type="module" src="js/begriffeverbinden.js"></script>
+  <script type="module" src="js/rocket.js"></script>
+</body>
+</html>
