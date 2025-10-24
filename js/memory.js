@@ -3,18 +3,30 @@
    =========================================================== */
 
 import { playSound, addPoint } from "./main.js";
+import { getTopicData } from "./topic-data.js";
 
-export function loadMemory() {
+export async function loadMemory() {
+  const topic = window.currentTopic || "Allgemeines Wissen";
   gameArea.innerHTML = `
     <div id="memory-game">
       <h2>🧠 Forschermemory</h2>
+      <p class="topic-hint">Thema: ${topic}</p>
       <p>Finde die passenden Paare!</p>
       <div id="memory-grid"></div>
       <p id="memory-feedback"></p>
     </div>
   `;
 
-  const icons = ["🌍", "🪐", "🌕", "☀️", "⭐", "💧"];
+  const topicData = await getTopicData(topic);
+  const keywords = topicData?.keywords?.length ? topicData.keywords : [];
+  const icons = (keywords.length >= 6 ? keywords.slice(0, 6) : [
+    "🌍",
+    "🪐",
+    "🌕",
+    "☀️",
+    "⭐",
+    "💧"
+  ]).map(String);
   const pairs = [...icons, ...icons].sort(() => Math.random() - 0.5);
   const grid = document.getElementById("memory-grid");
 

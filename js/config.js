@@ -17,7 +17,8 @@ export const CONFIG = {
   ai: {
     worksheet: "/generateSheet",
     questions: "/generateQuestions",
-    hints: "/generateHints"
+    hints: "/generateHints",
+    topicData: "/topicData"
   },
   ui: {
     rocketSpeed: 1000,

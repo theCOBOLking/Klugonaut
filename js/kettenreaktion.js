@@ -3,11 +3,14 @@
    =========================================================== */
 
 import { playSound, addPoint } from "./main.js";
+import { getTopicData } from "./topic-data.js";
 
-export function loadKettenreaktion() {
+export async function loadKettenreaktion() {
+  const topic = window.currentTopic || "Allgemeines Wissen";
   gameArea.innerHTML = `
     <div id="chain-game">
       <h2>⚙️ Kettenreaktion</h2>
+      <p class="topic-hint">Thema: ${topic}</p>
       <p>Bringe die Schritte in die richtige Reihenfolge!</p>
       <ul id="chain-list"></ul>
       <button id="checkOrder" class="glow-btn">✅ Prüfen</button>
@@ -15,28 +18,8 @@ export function loadKettenreaktion() {
     </div>
   `;
 
-  const chains = [
-    {
-      title: "Wasserkreislauf",
-      steps: [
-        "Die Sonne erwärmt das Wasser.",
-        "Das Wasser verdunstet.",
-        "Die Wolken bilden sich.",
-        "Es regnet.",
-        "Das Wasser fließt in Flüsse und Meere zurück."
-      ]
-    },
-    {
-      title: "Pflanzenwachstum",
-      steps: [
-        "Ein Samenkorn fällt in die Erde.",
-        "Es keimt und wächst.",
-        "Es bildet Blätter.",
-        "Es blüht.",
-        "Neue Samen entstehen."
-      ]
-    }
-  ];
+  const topicData = await getTopicData(topic);
+  const chains = (topicData?.chains?.length ? topicData.chains : getFallbackChains());
 
   let current = chains[Math.floor(Math.random() * chains.length)];
   let scrambled = [...current.steps].sort(() => Math.random() - 0.5);
@@ -93,4 +76,29 @@ function enableDragSort(list) {
       }
     });
   });
+}
+
+function getFallbackChains() {
+  return [
+    {
+      title: "Wasserkreislauf",
+      steps: [
+        "Die Sonne erwärmt das Wasser.",
+        "Das Wasser verdunstet.",
+        "Die Wolken bilden sich.",
+        "Es regnet.",
+        "Das Wasser fließt in Flüsse und Meere zurück."
+      ]
+    },
+    {
+      title: "Pflanzenwachstum",
+      steps: [
+        "Ein Samenkorn fällt in die Erde.",
+        "Es keimt und wächst.",
+        "Es bildet Blätter.",
+        "Es blüht.",
+        "Neue Samen entstehen."
+      ]
+    }
+  ];
 }

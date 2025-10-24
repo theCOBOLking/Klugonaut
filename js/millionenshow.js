@@ -3,11 +3,14 @@
    =========================================================== */
 
 import { playSound, addPoint } from "./main.js";
+import { getTopicData } from "./topic-data.js";
 
-export function loadMillionenshow() {
+export async function loadMillionenshow() {
+  const topic = window.currentTopic || "Allgemeines Wissen";
   gameArea.innerHTML = `
     <div id="quiz-stage">
       <h2>🎬 Klugonauten-Mission: Millionenshow</h2>
+      <p class="topic-hint">Thema: ${topic}</p>
       <p id="question"></p>
       <div class="answers"></div>
       <div id="feedback"></div>
@@ -15,26 +18,18 @@ export function loadMillionenshow() {
     </div>
   `;
 
-  const questions = [
-    {
-      q: "Welches Tier kann sowohl an Land als auch im Wasser leben?",
-      a: ["Frosch", "Vogel", "Katze", "Eichhörnchen"],
-      correct: 0,
-      hint: "Denke an Tiere, die Eier im Wasser legen und Kiemen haben, wenn sie jung sind."
-    },
-    {
-      q: "Was zeigt ein Kompass an?",
-      a: ["Den Norden", "Die Temperatur", "Die Höhe", "Die Zeit"],
-      correct: 0,
-      hint: "Er zeigt eine Himmelsrichtung an, die dir beim Orientieren hilft."
-    },
-    {
-      q: "Woraus besteht der größte Teil der Erde?",
-      a: ["Wasser", "Land", "Eis", "Lava"],
-      correct: 0,
-      hint: "Schau auf den Globus – die blaue Fläche ist der größte Anteil."
-    }
-  ];
+  const topicData = await getTopicData(topic);
+  const questions = (topicData?.quiz?.length ? topicData.quiz : getFallbackQuestions()).map(q => ({
+    ...q,
+    q: q.q || q.question,
+    a: q.a || q.answers
+  }));
+
+  if (!questions.length) {
+    document.getElementById("question").textContent = "❌ Keine Fragen vorhanden.";
+    document.querySelector(".answers").innerHTML = "";
+    return;
+  }
 
   let current = 0;
   showQuestion(current);
@@ -94,4 +89,27 @@ export function loadMillionenshow() {
       }
     }, 2000);
   }
+}
+
+function getFallbackQuestions() {
+  return [
+    {
+      q: "Welches Tier kann sowohl an Land als auch im Wasser leben?",
+      a: ["Frosch", "Vogel", "Katze", "Eichhörnchen"],
+      correct: 0,
+      hint: "Denke an Tiere, die Eier im Wasser legen und Kiemen haben, wenn sie jung sind."
+    },
+    {
+      q: "Was zeigt ein Kompass an?",
+      a: ["Den Norden", "Die Temperatur", "Die Höhe", "Die Zeit"],
+      correct: 0,
+      hint: "Er zeigt eine Himmelsrichtung an, die dir beim Orientieren hilft."
+    },
+    {
+      q: "Woraus besteht der größte Teil der Erde?",
+      a: ["Wasser", "Land", "Eis", "Lava"],
+      correct: 0,
+      hint: "Schau auf den Globus – die blaue Fläche ist der größte Anteil."
+    }
+  ];
 }
