@@ -5,9 +5,12 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
+import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { CHAPTERS } from "./data/chapters.js";
 import { generateTopicData } from "./data/topicGenerator.js";
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,7 +18,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY || "";
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-pro";
 
 app.use(cors());
 app.use(express.json());
