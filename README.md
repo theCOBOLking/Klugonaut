@@ -17,11 +17,14 @@ Siehe Ordnerhierarchie im Projekt.
 
 ## ⚙️ Start
 ```bash
-npm init -y
-npm install express cors
-node server.js
+npm install
+npm start
 ```
 Dann im Browser öffnen: http://localhost:5000
+
+> 💡 **Hinweis:** Die Spiele funktionieren auch ohne laufendes Backend.
+> In diesem Fall werden automatisch lokale Dummy-Themen und
+> Beispiel-Arbeitsblätter angezeigt.
 
 ## 🔌 API
 - GET /api/chapters?part=A|B|C
