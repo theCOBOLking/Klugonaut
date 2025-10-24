@@ -4,6 +4,7 @@
 
 import { CONFIG, apiFetch } from "./config.js";
 import { playSound } from "./main.js";
+import { getTopicData } from "./topic-data.js";
 
 export function loadArbeitsblatt() {
   gameArea.innerHTML = `
@@ -28,15 +29,21 @@ export function loadArbeitsblatt() {
     });
 
     if (!data || !data.questions) {
+      const topicData = await getTopicData(topic);
+      const scenarioQuestion = topicData.scenarios?.[0]?.question
+        ? `Beschreibe: ${topicData.scenarios[0].question}`
+        : `Beschreibe eine Situation zu ${topicData.topic}.`;
+      const keyword = topicData.keywords?.[0] || topicData.topic;
+      const keywordTwo = topicData.keywords?.[1] || "Beobachten";
       data = {
         title: `Arbeitsblatt: ${topic}`,
-        subtitle: "Wissen vertiefen mit dem Klugonaut 🚀",
+        subtitle: `Entdecke ${topicData.topic} im Kapitel ${topicData.chapter}`,
         questions: [
-          "1️⃣ Erkläre, warum Pflanzen Wasser brauchen.",
-          "2️⃣ Zeichne den Weg des Stroms vom Kraftwerk zur Steckdose.",
-          "3️⃣ Ergänze: Die Sonne ist wichtig, weil sie _______.",
-          "4️⃣ Beschreibe, was passiert, wenn Schnee schmilzt.",
-          "5️⃣ Male dein Lieblingstier im Jahreskreis."
+          `1️⃣ Erkläre ${topicData.topic} mit eigenen Worten.`,
+          `2️⃣ Nenne ein Beispiel, in dem ${topicData.topic.toLowerCase()} wichtig ist.`,
+          `3️⃣ ${scenarioQuestion}`,
+          `4️⃣ Schreibe auf, was das Wort "${keyword}" mit ${topicData.topic.toLowerCase()} zu tun hat.`,
+          `5️⃣ Beobachte und notiere, wie du ${keywordTwo.toLowerCase()} einsetzen kannst, um ${topicData.topic.toLowerCase()} besser zu verstehen.`
         ]
       };
     }

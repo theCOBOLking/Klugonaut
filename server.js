@@ -7,6 +7,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { CHAPTERS } from "./data/chapters.js";
+import { generateTopicData } from "./data/topicGenerator.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,6 +38,12 @@ app.post("/api/generateSheet", (req, res) => {
     ]
   };
   res.json(sheet);
+});
+
+app.post("/api/topicData", (req, res) => {
+  const topic = req.body?.topic || "Allgemeines Wissen";
+  const data = generateTopicData(topic);
+  res.json(data);
 });
 
 app.listen(PORT, () => {

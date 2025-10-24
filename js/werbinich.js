@@ -3,11 +3,14 @@
    =========================================================== */
 
 import { playSound, addPoint } from "./main.js";
+import { getTopicData } from "./topic-data.js";
 
-export function loadWerBinIch() {
+export async function loadWerBinIch() {
+  const topic = window.currentTopic || "Allgemeines Wissen";
   gameArea.innerHTML = `
     <div id="werbinich-game">
       <h2>🐾 Wer bin ich?</h2>
+      <p class="topic-hint">Thema: ${topic}</p>
       <p id="hint">Hier kommen deine Hinweise...</p>
       <input id="guessInput" type="text" placeholder="Deine Antwort" autocomplete="off"/>
       <button id="checkBtn" class="glow-btn">Antwort prüfen</button>
@@ -15,32 +18,11 @@ export function loadWerBinIch() {
     </div>
   `;
 
-  const riddles = [
-    {
-      hints: [
-        "Ich bin grün und lebe am Wasser.",
-        "Ich springe weit und esse Fliegen.",
-        "Meine Haut ist glatt und ich quacke gern."
-      ],
-      answer: "frosch"
-    },
-    {
-      hints: [
-        "Ich habe Flügel und kann fliegen.",
-        "Ich baue Nester.",
-        "Ich kann singen und piepsen."
-      ],
-      answer: "vogel"
-    },
-    {
-      hints: [
-        "Ich bin aus Metall und fahre auf der Straße.",
-        "Ich brauche Benzin oder Strom.",
-        "Ich habe Räder und bringe dich ans Ziel."
-      ],
-      answer: "auto"
-    }
-  ];
+  const topicData = await getTopicData(topic);
+  const riddles = (topicData?.riddles?.length ? topicData.riddles : getFallbackRiddles()).map(r => ({
+    ...r,
+    hints: r.hints || r.clues || []
+  }));
 
   let current = 0;
   let hintIndex = 0;
@@ -62,7 +44,7 @@ export function loadWerBinIch() {
     const r = riddles[current];
     if (!val) return;
 
-    if (val === r.answer) {
+    if (normalize(val) === normalize(r.answer)) {
       resultEl.textContent = "✅ Richtig! Du hast mich erkannt!";
       resultEl.style.color = "#3cff79";
       playSound("right");
@@ -95,4 +77,43 @@ export function loadWerBinIch() {
       showHint();
     }
   }
+}
+
+function getFallbackRiddles() {
+  return [
+    {
+      hints: [
+        "Ich bin grün und lebe am Wasser.",
+        "Ich springe weit und esse Fliegen.",
+        "Meine Haut ist glatt und ich quacke gern."
+      ],
+      answer: "frosch"
+    },
+    {
+      hints: [
+        "Ich habe Flügel und kann fliegen.",
+        "Ich baue Nester.",
+        "Ich kann singen und piepsen."
+      ],
+      answer: "vogel"
+    },
+    {
+      hints: [
+        "Ich bin aus Metall und fahre auf der Straße.",
+        "Ich brauche Benzin oder Strom.",
+        "Ich habe Räder und bringe dich ans Ziel."
+      ],
+      answer: "auto"
+    }
+  ];
+}
+
+function normalize(str) {
+  return (str || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/\s+/g, " ");
 }

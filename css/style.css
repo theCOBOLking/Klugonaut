@@ -191,6 +191,15 @@ button:hover{
   box-shadow:0 0 20px #00eaff;
   transform:scale(1.05);
 }
+.glow-btn:disabled {
+  opacity:0.6;
+  cursor:not-allowed;
+}
+.topic-hint {
+  margin:0 0 10px;
+  font-size:0.9rem;
+  color:#8bd5ff;
+}
 .worksheet-preview {
   margin-top:20px;
   background:rgba(255,255,255,0.05);

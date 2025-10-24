@@ -3,11 +3,14 @@
    =========================================================== */
 
 import { playSound, addPoint } from "./main.js";
+import { getTopicData } from "./topic-data.js";
 
-export function loadBegriffeVerbinden() {
+export async function loadBegriffeVerbinden() {
+  const topic = window.currentTopic || "Allgemeines Wissen";
   gameArea.innerHTML = `
     <div id="connect-game">
       <h2>🔗 Begriffe verbinden</h2>
+      <p class="topic-hint">Thema: ${topic}</p>
       <p>Ziehe die passenden Paare zusammen!</p>
       <div id="connect-container">
         <div id="left-side"></div>
@@ -17,13 +20,8 @@ export function loadBegriffeVerbinden() {
     </div>
   `;
 
-  const pairs = [
-    { left: "Wolke", right: "besteht aus Wassertröpfchen" },
-    { left: "Kompass", right: "zeigt den Norden" },
-    { left: "Sonne", right: "liefert Licht und Wärme" },
-    { left: "Frosch", right: "lebt im Wasser und an Land" },
-    { left: "Baum", right: "macht Sauerstoff" }
-  ];
+  const topicData = await getTopicData(topic);
+  const pairs = topicData?.connections?.length ? topicData.connections : getFallbackPairs();
 
   const leftSide = document.getElementById("left-side");
   const rightSide = document.getElementById("right-side");
@@ -87,4 +85,14 @@ function enableConnectDrag() {
       }, 1500);
     });
   });
+}
+
+function getFallbackPairs() {
+  return [
+    { left: "Wolke", right: "besteht aus Wassertröpfchen" },
+    { left: "Kompass", right: "zeigt den Norden" },
+    { left: "Sonne", right: "liefert Licht und Wärme" },
+    { left: "Frosch", right: "lebt im Wasser und an Land" },
+    { left: "Baum", right: "macht Sauerstoff" }
+  ];
 }
